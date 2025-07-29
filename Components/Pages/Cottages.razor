@@ -1,0 +1,74 @@
+@page "/cottages"
+@using CottageFinder.Services
+@using CottageFinder.Models
+@inject APIService ApiService
+
+<h1>Cottages</h1>
+
+@if (isLoading)
+{
+    <div class="loading">
+        <p>Loading cottages...</p>
+    </div>
+}
+else if (searchResults?.Cottages?.Any() == true)
+{
+    <div class="cottages-container">
+        @if (searchResults.Total.HasValue)
+        {
+            <p class="total-results">Found @searchResults.Total cottages</p>
+        }
+        
+        <div class="cottages-grid">
+            @foreach (var cottage in searchResults.Cottages)
+            {
+                <div class="cottage-card">
+                    @if (!string.IsNullOrEmpty(cottage.PictureUrl))
+                    {
+                        <img src="@cottage.PictureUrl" alt="@cottage.Name" class="cottage-image" />
+                    }
+                    else
+                    {
+                        <div class="no-image">No Image Available</div>
+                    }
+                    <div class="cottage-info">
+                        <h3 class="cottage-title">@cottage.Name</h3>
+                        <p class="cottage-location">@cottage.Town</p>
+                        <p class="cottage-details">@cottage.SleepsText</p>
+                        @if (!string.IsNullOrEmpty(cottage.Rent))
+                        {
+                            <p class="cottage-price">@cottage.Rent</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="no-results">
+        <p>No cottages found. Please try again later.</p>
+    </div>
+}
+
+@code {
+    private SearchResults? searchResults;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            searchResults = await ApiService.GetCottages();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading cottages: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
