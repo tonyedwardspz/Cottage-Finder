@@ -1,0 +1,116 @@
+@page "/compass"
+@using CottageFinder.Interfaces
+@inject ISensorsService SensorsService
+@implements IDisposable
+
+<PageTitle>Compass</PageTitle>
+
+<div class="compass-container">
+    <h1>Compass</h1>
+
+    @if (!SensorsService.IsCompassSupported)
+    {
+        <div class="alert alert-warning">
+            <p>Compass is not supported on this device.</p>
+        </div>
+    }
+    else
+    {
+        <div class="compass-display">
+            <div class="compass-reading" style="color: @compassColor">
+                @compassReading
+            </div>
+
+            <button class="btn @(SensorsService.IsCompassMonitoring ? "btn-danger" : "btn-primary")" 
+                    @onclick="ToggleCompassAsync"
+                    disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>Loading...</span>
+                }
+                else
+                {
+                    @(SensorsService.IsCompassMonitoring ? "Stop Compass" : "Start Compass")
+                }
+            </button>
+        </div>
+
+        <div class="compass-status">
+            <p>Status: <strong>@(SensorsService.IsCompassMonitoring ? "Monitoring" : "Stopped")</strong></p>
+        </div>
+    }
+</div>
+
+@code {
+    private string compassReading = "Compass: Not started";
+    private string compassColor = "black";
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to service events
+        SensorsService.CompassReadingChanged += OnCompassReadingChanged;
+        SensorsService.CompassStatusChanged += OnCompassStatusChanged;
+    }
+
+    private async Task ToggleCompassAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await SensorsService.ToggleCompassAsync();
+
+            if (!SensorsService.IsCompassMonitoring && !result)
+            {
+                // Handle case where compass failed to start
+                compassReading = "Compass: Failed to start";
+                compassColor = "red";
+            }
+        }
+        catch (Exception ex)
+        {
+            compassReading = $"Error: {ex.Message}";
+            compassColor = "red";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnCompassReadingChanged(object? sender, CompassReadingEventArgs e)
+    {
+        // Update UI on main thread
+        InvokeAsync(() =>
+        {
+            compassReading = e.FormattedReading;
+            compassColor = "green";
+            StateHasChanged();
+        });
+    }
+
+    private void OnCompassStatusChanged(object? sender, bool isMonitoring)
+    {
+        // Update UI when compass status changes
+        InvokeAsync(() =>
+        {
+            if (!isMonitoring)
+            {
+                compassReading = "Compass: Stopped";
+                compassColor = "black";
+            }
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe from events to prevent memory leaks
+        SensorsService.CompassReadingChanged -= OnCompassReadingChanged;
+        SensorsService.CompassStatusChanged -= OnCompassStatusChanged;
+    }
+}
