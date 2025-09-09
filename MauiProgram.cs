@@ -19,6 +19,7 @@ namespace CottageFinder
             builder.Services.AddMauiBlazorWebView();
 
             builder.Services.AddSingleton<ISensorsService, SensorsService>();
+            builder.Services.AddSingleton<ILocationService, LocationService>();
             builder.Services.AddSingleton<APIService>();
 
 #if DEBUG
@@ -30,3 +31,6 @@ namespace CottageFinder
         }
     }
 }
+
+
+
