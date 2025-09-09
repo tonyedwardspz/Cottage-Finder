@@ -20,6 +20,7 @@ namespace CottageFinder
 
             builder.Services.AddSingleton<ISensorsService, SensorsService>();
             builder.Services.AddSingleton<ILocationService, LocationService>();
+            builder.Services.AddSingleton<IBearingService, BearingService>();
             builder.Services.AddSingleton<APIService>();
 
 #if DEBUG

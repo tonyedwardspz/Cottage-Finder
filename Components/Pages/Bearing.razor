@@ -1,0 +1,149 @@
+@page "/bearing"
+@using CottageFinder.Interfaces
+@using CottageFinder.Models
+@inject IBearingService BearingService
+
+<h3>Bearing Calculator</h3>
+
+<div class="bearing-container">
+    <div class="input-section">
+        <h4>Target Coordinates</h4>
+        <div class="form-group">
+            <label>Latitude:</label>
+            <input type="number" step="any" @bind="targetLatitude" placeholder="e.g., 40.7128" />
+        </div>
+        <div class="form-group">
+            <label>Longitude:</label>
+            <input type="number" step="any" @bind="targetLongitude" placeholder="e.g., -74.0060" />
+        </div>
+        <button class="btn btn-primary" @onclick="CalculateBearing">Calculate Bearing</button>
+    </div>
+
+    @if (bearingResult != null)
+    {
+        <div class="result-section">
+            <h4>Bearing Result</h4>
+            <div class="result-details">
+                <div class="result-item">
+                    <strong>Bearing:</strong> @bearingResult.BearingDegrees.ToString("F1")°
+                </div>
+                <div class="result-item">
+                    <strong>Direction:</strong> @bearingResult.CompassDirection
+                </div>
+                <div class="result-item">
+                    <strong>Distance:</strong> @bearingResult.DistanceKilometers.ToString("F2") km
+                </div>
+                <div class="result-item">
+                    <strong>From:</strong> @bearingResult.FromLocation.Latitude.ToString("F4")°, @bearingResult.FromLocation.Longitude.ToString("F4")°
+                </div>
+                <div class="result-item">
+                    <strong>To:</strong> @bearingResult.ToLocation.Latitude.ToString("F4")°, @bearingResult.ToLocation.Longitude.ToString("F4")°
+                </div>
+                <div class="result-item">
+                    <strong>Calculated:</strong> @bearingResult.CalculatedAt.ToString("HH:mm:ss")
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-section">
+            <p class="error">@errorMessage</p>
+        </div>
+    }
+</div>
+
+<style>
+    .bearing-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .input-section, .result-section, .error-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.8;
+    }
+
+    .result-details {
+        display: grid;
+        gap: 10px;
+    }
+
+    .result-item {
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+        border-left: 4px solid #007bff;
+    }
+
+    .error {
+        color: #dc3545;
+        font-weight: bold;
+    }
+</style>
+
+@code {
+    private double targetLatitude = 40.7128; // Example: New York City
+    private double targetLongitude = -74.0060;
+    private BearingResult? bearingResult;
+    private string errorMessage = string.Empty;
+
+    private async Task CalculateBearing()
+    {
+        errorMessage = string.Empty;
+        bearingResult = null;
+
+        try
+        {
+            bearingResult = await BearingService.CalculateBearingToTargetAsync(targetLatitude, targetLongitude);
+            
+            if (bearingResult == null)
+            {
+                errorMessage = "Could not get current location. Please ensure location permissions are granted.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error calculating bearing: {ex.Message}";
+        }
+    }
+}
