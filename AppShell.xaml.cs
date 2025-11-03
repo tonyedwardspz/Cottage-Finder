@@ -28,19 +28,13 @@ namespace CottageFinder
         {
             var targetRoute = e.Target?.Location?.OriginalString;
             
-            // If navigating to MainPage (Home), navigate to "/" in Blazor instead
+            // If navigating to MainPage (default), navigate to "/" (cottages) in Blazor
             if (targetRoute == "//MainPage" || targetRoute == "/MainPage")
             {
                 e.Cancel();
                 FlyoutIsPresented = false;
                 _navigationService?.NavigateTo("/");
             }
-        }
-
-        private void OnCottagesClicked(object? sender, EventArgs e)
-        {
-            _navigationService?.NavigateTo("/cottages");
-            FlyoutIsPresented = false;
         }
 
         private void OnSensorReadingsClicked(object? sender, EventArgs e)

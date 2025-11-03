@@ -9,13 +9,9 @@
     FlyoutBehavior="Flyout">
 
     <ShellContent
-        Title="Home"
+        Title="Cottages"
         ContentTemplate="{DataTemplate local:BlazorHostPage}"
         Route="MainPage" />
-
-    <MenuItem 
-        Text="Cottages"
-        Clicked="OnCottagesClicked" />
 
     <MenuItem 
         Text="Sensor Readings"
