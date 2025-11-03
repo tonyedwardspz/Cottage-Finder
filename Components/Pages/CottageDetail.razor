@@ -1,0 +1,242 @@
+@page "/cottage/{CottageCode:int}"
+@using CottageFinder.Services
+@using CottageFinder.Models
+@inject APIService ApiService
+@inject NavigationManager Navigation
+@inject CottageStateService StateService
+
+<div class="cottage-detail-container">
+    @if (isLoading)
+    {
+        <div class="loading">
+            <p>Loading cottage details...</p>
+        </div>
+    }
+    else if (cottage != null)
+    {
+        <div class="cottage-detail-header">
+            <button class="back-button" @onclick="GoBack">
+                <span class="back-arrow">←</span> Back to Cottages
+            </button>
+            <h1 class="cottage-detail-title">@cottage.Name</h1>
+        </div>
+
+        <div class="cottage-detail-content">
+            <div class="cottage-detail-image-section">
+                @if (!string.IsNullOrEmpty(cottage.PictureUrl))
+                {
+                    <img src="@cottage.PictureUrl" alt="@cottage.Name" class="cottage-detail-image" />
+                }
+                else
+                {
+                    <div class="cottage-detail-no-image">No Image Available</div>
+                }
+            </div>
+
+            <div class="cottage-detail-info">
+                <div class="cottage-detail-card">
+                    <h2>Quick Details</h2>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <strong>Location:</strong>
+                            <span>@cottage.Town</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(cottage.TownDistance))
+                        {
+                            <div class="detail-item">
+                                <strong>Distance:</strong>
+                                <span>@cottage.TownDistance</span>
+                            </div>
+                        }
+                        <div class="detail-item">
+                            <strong>Accommodation:</strong>
+                            <span>@cottage.SleepsText</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Bedrooms:</strong>
+                            <span>@cottage.Bedrooms</span>
+                        </div>
+                        @if (cottage.MaxAdults > 0)
+                        {
+                            <div class="detail-item">
+                                <strong>Max Adults:</strong>
+                                <span>@cottage.MaxAdults</span>
+                            </div>
+                        }
+                        @if (cottage.MaxPets > 0)
+                        {
+                            <div class="detail-item">
+                                <strong>Pets Welcome:</strong>
+                                <span>Up to @cottage.MaxPets pet@(cottage.MaxPets > 1 ? "s" : "")</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(cottage.Changeover))
+                        {
+                            <div class="detail-item">
+                                <strong>Changeover Day:</strong>
+                                <span>@cottage.Changeover</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(cottage.RentPeriod))
+                        {
+                            <div class="detail-item">
+                                <strong>Rental Period:</strong>
+                                <span>@cottage.RentPeriod</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(cottage.Rent))
+                {
+                    <div class="cottage-detail-card pricing-card">
+                        <h2>Pricing</h2>
+                        <div class="price-display">
+                            <span class="main-price">@cottage.Rent</span>
+                            @if (cottage.MinRent != cottage.MaxRent && cottage.MinRent > 0 && cottage.MaxRent > 0)
+                            {
+                                <div class="price-range">
+                                    <small>Range: £@cottage.MinRent.ToString("F0") - £@cottage.MaxRent.ToString("F0")</small>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(cottage.IntroText))
+                {
+                    <div class="cottage-detail-card description-card">
+                        <h2>Description</h2>
+                        <div class="description-text">
+                            @((MarkupString)FormatIntroText(cottage.IntroText))
+                        </div>
+                    </div>
+                }
+
+                @if (cottage.SpecialOffers?.Any() == true)
+                {
+                    <div class="cottage-detail-card offers-card">
+                        <h2>Special Offers</h2>
+                        <div class="offers-list">
+                            @foreach (var offer in cottage.SpecialOffers)
+                            {
+                                <div class="offer-item">
+                                    @if (!string.IsNullOrEmpty(offer.Title))
+                                    {
+                                        <h4 class="offer-title">@offer.Title</h4>
+                                    }
+                                    @if (!string.IsNullOrEmpty(offer.Dates))
+                                    {
+                                        <p class="offer-dates"><strong>Dates:</strong> @offer.Dates</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(offer.PriceFull) && !string.IsNullOrEmpty(offer.PriceNow))
+                                    {
+                                        <div class="offer-pricing">
+                                            <span class="price-was">Was: @offer.PriceFull</span>
+                                            <span class="price-now">Now: @offer.PriceNow</span>
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(offer.PriceNow))
+                                    {
+                                        <p class="offer-price">@offer.PriceNow</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="cottage-detail-card location-card">
+                    <h2>Location Details</h2>
+                    <div class="location-info">
+                        <p><strong>Coordinates:</strong> @cottage.Latitude.ToString("F6"), @cottage.Longitude.ToString("F6")</p>
+                        @if (cottage.Position.HasValue)
+                        {
+                            <p><strong>Search Position:</strong> #@cottage.Position</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cottage-not-found">
+            <h2>Cottage Not Found</h2>
+            <p>The cottage you're looking for could not be found.</p>
+            <button class="back-button" @onclick="GoBack">
+                <span class="back-arrow">←</span> Back to Cottages
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int CottageCode { get; set; }
+    
+    private Cottage? cottage;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine($"Looking for cottage with code: {CottageCode}");
+            
+            // First try to get cottage from cached state
+            cottage = StateService.GetCottageByCode(CottageCode);
+            Console.WriteLine($"Found cottage in cache: {cottage != null}");
+            
+            // If not found in cache and cache is expired, fetch fresh data
+            if (cottage == null && !StateService.HasValidCache)
+            {
+                Console.WriteLine("Cache invalid, fetching fresh data...");
+                var searchResults = await ApiService.GetCottages();
+                if (searchResults != null)
+                {
+                    Console.WriteLine($"Got {searchResults.Cottages?.Count ?? 0} cottages from API");
+                    StateService.SetSearchResults(searchResults);
+                    cottage = StateService.GetCottageByCode(CottageCode);
+                    Console.WriteLine($"Found cottage after fresh fetch: {cottage != null}");
+                    
+                    // Debug: List all cottage codes
+                    if (searchResults.Cottages != null)
+                    {
+                        var codes = string.Join(", ", searchResults.Cottages.Select(c => c.Code.ToString()));
+                        Console.WriteLine($"Available cottage codes: {codes}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading cottage details: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/cottages");
+    }
+
+    private string FormatIntroText(string introText)
+    {
+        if (string.IsNullOrEmpty(introText))
+            return string.Empty;
+
+        // Replace &#xD;&#xA; with proper line breaks
+        var formatted = introText.Replace("&#xD;&#xA;", "<br/><br/>");
+        
+        // Handle any other common HTML entities
+        formatted = formatted.Replace("&amp;", "&");
+        formatted = formatted.Replace("&lt;", "<");
+        formatted = formatted.Replace("&gt;", ">");
+        formatted = formatted.Replace("&quot;", "\"");
+        
+        return formatted;
+    }
+}

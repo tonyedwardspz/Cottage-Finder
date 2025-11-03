@@ -2,6 +2,8 @@
 @using CottageFinder.Services
 @using CottageFinder.Models
 @inject APIService ApiService
+@inject NavigationManager Navigation
+@inject CottageStateService StateService
 
 <h1>Cottages</h1>
 
@@ -22,7 +24,7 @@ else if (searchResults?.Cottages?.Any() == true)
         <div class="cottages-grid">
             @foreach (var cottage in searchResults.Cottages)
             {
-                <div class="cottage-card">
+                <div class="cottage-card" @onclick="() => NavigateToCottageDetail(cottage.Code)">
                     @if (!string.IsNullOrEmpty(cottage.PictureUrl))
                     {
                         <img src="@cottage.PictureUrl" alt="@cottage.Name" class="cottage-image" />
@@ -60,7 +62,26 @@ else
     {
         try
         {
+            // Check if we have valid cached data first
+            if (StateService.HasValidCache)
+            {
+                searchResults = StateService.CachedSearchResults;
+                Console.WriteLine($"Using cached data with {searchResults?.Cottages?.Count ?? 0} cottages");
+                isLoading = false;
+                return;
+            }
+
+            // If no valid cache, fetch fresh data
+            Console.WriteLine("Fetching fresh cottage data...");
             searchResults = await ApiService.GetCottages();
+            Console.WriteLine($"Received {searchResults?.Cottages?.Count ?? 0} cottages from API");
+            
+            // Cache the results for other components to use
+            if (searchResults != null)
+            {
+                StateService.SetSearchResults(searchResults);
+                Console.WriteLine("Cached search results");
+            }
         }
         catch (Exception ex)
         {
@@ -70,5 +91,11 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private void NavigateToCottageDetail(int cottageCode)
+    {
+        Console.WriteLine($"Navigating to cottage detail for code: {cottageCode}");
+        Navigation.NavigateTo($"/cottage/{cottageCode}");
     }
 }
