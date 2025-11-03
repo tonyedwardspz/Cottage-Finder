@@ -1,0 +1,104 @@
+.location-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.status-section, .location-section, .history-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+ margin-bottom: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.status {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.status.monitoring {
+    color: #28a745;
+}
+
+.status.stopped {
+    color: #dc3545;
+}
+
+.btn {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.location-details {
+    display: grid;
+    gap: 10px;
+}
+
+.coordinate {
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+}
+
+.timestamp {
+    padding: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    font-style: italic;
+}
+
+.no-location {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.history-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: white;
+    margin-bottom: 5px;
+    border-radius: 4px;
+  border-left: 3px solid #28a745;
+}
+
+.time {
+    font-weight: bold;
+    color: #495057;
+}
+
+.coords {
+    color: #007bff;
+    font-family: monospace;
+}

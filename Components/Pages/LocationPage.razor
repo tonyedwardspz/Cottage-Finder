@@ -10,52 +10,52 @@
     <div class="status-section">
         <h4>Status</h4>
         <p class="status @(isMonitoring ? "monitoring" : "stopped")">
-            @(isMonitoring ? "🟢 Monitoring" : "🔴 Stopped")
+    @(isMonitoring ? "🟢 Monitoring" : "🔴 Stopped")
         </p>
         
         <button class="btn @(isMonitoring ? "btn-danger" : "btn-success")" 
-                @onclick="ToggleLocationTracking">
-            @(isMonitoring ? "Stop Tracking" : "Start Tracking")
-        </button>
+          @onclick="ToggleLocationTracking">
+          @(isMonitoring ? "Stop Tracking" : "Start Tracking")
+</button>
         
-        <button class="btn btn-primary" @onclick="GetCurrentLocation">
-            Get Current Location
-        </button>
+     <button class="btn btn-primary" @onclick="GetCurrentLocation">
+      Get Current Location
+</button>
     </div>
 
     <div class="location-section">
         <h4>Current Location</h4>
-        @if (currentLocation != null)
+   @if (currentLocation != null)
         {
-            <div class="location-details">
-                <div class="coordinate">
-                    <strong>Latitude:</strong> @currentLocation.Latitude.ToString("F6")°
+   <div class="location-details">
+        <div class="coordinate">
+      <strong>Latitude:</strong> @currentLocation.Latitude.ToString("F6")°
+      </div>
+            <div class="coordinate">
+     <strong>Longitude:</strong> @currentLocation.Longitude.ToString("F6")°
+      </div>
+        <div class="coordinate">
+        <strong>Altitude:</strong> 
+ @(currentLocation.Altitude.HasValue ? $"{currentLocation.Altitude.Value:F2} m" : "N/A")
+       </div>
+             <div class="coordinate">
+   <strong>Accuracy:</strong> 
+               @(currentLocation.Accuracy.HasValue ? $"±{currentLocation.Accuracy.Value:F1} m" : "N/A")
+   </div>
+      <div class="coordinate">
+    <strong>Speed:</strong> 
+   @(currentLocation.Speed.HasValue ? $"{currentLocation.Speed.Value:F2} m/s" : "N/A")
                 </div>
-                <div class="coordinate">
-                    <strong>Longitude:</strong> @currentLocation.Longitude.ToString("F6")°
-                </div>
-                <div class="coordinate">
-                    <strong>Altitude:</strong> 
-                    @(currentLocation.Altitude.HasValue ? $"{currentLocation.Altitude.Value:F2} m" : "N/A")
-                </div>
-                <div class="coordinate">
-                    <strong>Accuracy:</strong> 
-                    @(currentLocation.Accuracy.HasValue ? $"±{currentLocation.Accuracy.Value:F1} m" : "N/A")
-                </div>
-                <div class="coordinate">
-                    <strong>Speed:</strong> 
-                    @(currentLocation.Speed.HasValue ? $"{currentLocation.Speed.Value:F2} m/s" : "N/A")
-                </div>
-                <div class="coordinate">
-                    <strong>Course:</strong> 
-                    @(currentLocation.Course.HasValue ? $"{currentLocation.Course.Value:F1}°" : "N/A")
-                </div>
-                <div class="timestamp">
-                    <strong>Last Update:</strong> @lastUpdateTime.ToString("HH:mm:ss")
-                </div>
-            </div>
-        }
-        else
+ <div class="coordinate">
+           <strong>Course:</strong> 
+           @(currentLocation.Course.HasValue ? $"{currentLocation.Course.Value:F1}°" : "N/A")
+      </div>
+  <div class="timestamp">
+        <strong>Last Update:</strong> @lastUpdateTime.ToString("HH:mm:ss")
+    </div>
+ </div>
+    }
+     else
         {
             <p class="no-location">No location data available</p>
         }
@@ -64,128 +64,21 @@
     @if (locationHistory.Any())
     {
         <div class="history-section">
-            <h4>Location History (Last 10 Updates)</h4>
+          <h4>Location History (Last 10 Updates)</h4>
             <div class="history-list">
-                @foreach (var item in locationHistory.Take(10))
-                {
-                    <div class="history-item">
-                        <span class="time">@item.Time.ToString("HH:mm:ss")</span>
-                        <span class="coords">
-                            @item.Location.Latitude.ToString("F4")°, @item.Location.Longitude.ToString("F4")°
-                        </span>
-                    </div>
-                }
+          @foreach (var item in locationHistory.Take(10))
+  {
+        <div class="history-item">
+       <span class="time">@item.Time.ToString("HH:mm:ss")</span>
+        <span class="coords">
+   @item.Location.Latitude.ToString("F4")°, @item.Location.Longitude.ToString("F4")°
+    </span>
+     </div>
+       }
             </div>
-        </div>
+    </div>
     }
 </div>
-
-<style>
-    .location-container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .status-section, .location-section, .history-section {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border: 1px solid #dee2e6;
-    }
-
-    .status {
-        font-size: 1.2em;
-        font-weight: bold;
-        margin: 10px 0;
-    }
-
-    .status.monitoring {
-        color: #28a745;
-    }
-
-    .status.stopped {
-        color: #dc3545;
-    }
-
-    .btn {
-        padding: 10px 20px;
-        margin: 5px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .btn-success {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .btn-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .btn:hover {
-        opacity: 0.8;
-    }
-
-    .location-details {
-        display: grid;
-        gap: 10px;
-    }
-
-    .coordinate {
-        padding: 8px;
-        background: white;
-        border-radius: 4px;
-        border-left: 4px solid #007bff;
-    }
-
-    .timestamp {
-        padding: 8px;
-        background: #e9ecef;
-        border-radius: 4px;
-        font-style: italic;
-    }
-
-    .no-location {
-        color: #6c757d;
-        font-style: italic;
-    }
-
-    .history-list {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-
-    .history-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px;
-        background: white;
-        margin-bottom: 5px;
-        border-radius: 4px;
-        border-left: 3px solid #28a745;
-    }
-
-    .time {
-        font-weight: bold;
-        color: #495057;
-    }
-
-    .coords {
-        color: #007bff;
-        font-family: monospace;
-    }
-</style>
 
 @code {
     private Location? currentLocation;
@@ -195,25 +88,25 @@
 
     protected override void OnInitialized()
     {
-        LocationService.LocationChanged += OnLocationChanged;
+     LocationService.LocationChanged += OnLocationChanged;
         LocationService.LocationStatusChanged += OnLocationStatusChanged;
     }
 
     private async Task ToggleLocationTracking()
     {
-        var result = await LocationService.ToggleLocationUpdatesAsync();
+   var result = await LocationService.ToggleLocationUpdatesAsync();
         StateHasChanged();
     }
 
     private async Task GetCurrentLocation()
     {
-        var location = await LocationService.GetCurrentLocationAsync();
-        if (location != null)
+    var location = await LocationService.GetCurrentLocationAsync();
+     if (location != null)
         {
-            currentLocation = location;
-            lastUpdateTime = DateTime.Now;
+  currentLocation = location;
+      lastUpdateTime = DateTime.Now;
             AddToHistory(location);
-            StateHasChanged();
+  StateHasChanged();
         }
     }
 
@@ -228,21 +121,21 @@
     private void OnLocationStatusChanged(object? sender, bool isActive)
     {
         isMonitoring = isActive;
-        InvokeAsync(StateHasChanged);
+      InvokeAsync(StateHasChanged);
     }
 
-    private void AddToHistory(Location location)
-    {
+ private void AddToHistory(Location location)
+ {
         locationHistory.Insert(0, (DateTime.Now, location));
         if (locationHistory.Count > 50) // Keep only last 50 updates
         {
-            locationHistory = locationHistory.Take(50).ToList();
+     locationHistory = locationHistory.Take(50).ToList();
         }
     }
 
     public void Dispose()
     {
-        LocationService.LocationChanged -= OnLocationChanged;
+    LocationService.LocationChanged -= OnLocationChanged;
         LocationService.LocationStatusChanged -= OnLocationStatusChanged;
-    }
+  }
 }
