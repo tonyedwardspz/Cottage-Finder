@@ -2,9 +2,11 @@
 @using CottageFinder.Interfaces
 @using CottageFinder.Models
 @using Microsoft.Maui.Devices.Sensors
+@using Microsoft.AspNetCore.Components
 @inject ISensorsService SensorsService
 @inject IBearingService BearingService
 @inject ILocationService LocationService
+@inject NavigationManager Navigation
 @implements IDisposable
 
 <PageTitle>Sensor Readings</PageTitle>
@@ -13,7 +15,7 @@
     <h1>Sensor Readings</h1>
 
     <!-- Compass Section -->
-    <div class="sensor-section">
+    <div class="sensor-section-box" @onclick="NavigateToCompass">
         <h2>Compass</h2>
         <div class="compass-container">
             @if (!SensorsService.IsCompassSupported)
@@ -31,6 +33,7 @@
 
                     <button class="btn @(SensorsService.IsCompassMonitoring ? "btn-danger" : "btn-primary")" 
                             @onclick="ToggleCompassAsync"
+                            @onclick:stopPropagation="true"
                             disabled="@isCompassLoading">
                         @if (isCompassLoading)
                         {
@@ -52,7 +55,7 @@
     </div>
 
     <!-- Location Section -->
-    <div class="sensor-section">
+    <div class="sensor-section-box" @onclick="NavigateToLocation">
         <h2>Live Location Tracking</h2>
         <div class="location-container">
             <div class="status-section">
@@ -62,11 +65,14 @@
                 </p>
                 
                 <button class="btn @(isLocationMonitoring ? "btn-danger" : "btn-success")" 
-                        @onclick="ToggleLocationTracking">
+                        @onclick="ToggleLocationTracking"
+                        @onclick:stopPropagation="true">
                     @(isLocationMonitoring ? "Stop Tracking" : "Start Tracking")
                 </button>
                 
-                <button class="btn btn-primary" @onclick="GetCurrentLocation">
+                <button class="btn btn-primary" 
+                        @onclick="GetCurrentLocation"
+                        @onclick:stopPropagation="true">
                     Get Current Location
                 </button>
             </div>
@@ -130,20 +136,24 @@
     </div>
 
     <!-- Bearing Section -->
-    <div class="sensor-section">
+    <div class="sensor-section-box" @onclick="NavigateToBearing">
         <h2>Bearing Calculator</h2>
         <div class="bearing-container">
             <div class="input-section">
                 <h4>Target Coordinates</h4>
                 <div class="form-group">
                     <label>Latitude:</label>
-                    <input type="number" step="any" @bind="targetLatitude" placeholder="e.g., 40.7128" />
+                    <input type="number" step="any" @bind="targetLatitude" placeholder="e.g., 40.7128" @onclick:stopPropagation="true" />
                 </div>
                 <div class="form-group">
                     <label>Longitude:</label>
-                    <input type="number" step="any" @bind="targetLongitude" placeholder="e.g., -74.0060" />
+                    <input type="number" step="any" @bind="targetLongitude" placeholder="e.g., -74.0060" @onclick:stopPropagation="true" />
                 </div>
-                <button class="btn btn-primary" @onclick="CalculateBearing">Calculate Bearing</button>
+                <button class="btn btn-primary" 
+                        @onclick="CalculateBearing"
+                        @onclick:stopPropagation="true">
+                    Calculate Bearing
+                </button>
             </div>
 
             @if (bearingResult != null)
@@ -329,6 +339,23 @@
         {
             bearingErrorMessage = $"Error calculating bearing: {ex.Message}";
         }
+    }
+    #endregion
+
+    #region Navigation Methods
+    private void NavigateToCompass()
+    {
+        Navigation.NavigateTo("/compass");
+    }
+
+    private void NavigateToLocation()
+    {
+        Navigation.NavigateTo("/location");
+    }
+
+    private void NavigateToBearing()
+    {
+        Navigation.NavigateTo("/bearing");
     }
     #endregion
 

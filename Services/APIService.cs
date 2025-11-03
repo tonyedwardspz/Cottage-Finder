@@ -35,6 +35,19 @@ internal class APIService
         // Implementation to retrieve a list of cottages
         var results = new SearchResults();
 
+        // First, load from local XML file as fallback
+        try
+        {
+            results = await LoadCottagesFromLocalXml();
+            Console.WriteLine($"Loaded {results.Cottages.Count} cottages from local XML file");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading local XML: {ex.Message}");
+        }
+
+        // Then, try to fetch from API if network is available
+        // This will update the results with live data if successful
         var url = BuildUrl();
 
         try
@@ -46,12 +59,14 @@ internal class APIService
                 var xmlDoc = new System.Xml.XmlDocument();
                 xmlDoc.LoadXml(response);
 
+                var apiResults = new SearchResults();
+
                 var cottages = xmlDoc.SelectNodes("/results/cottages/cottage");
                 if (cottages != null)
                 {
                     foreach (System.Xml.XmlNode cottageNode in cottages)
                     {
-                        results.Cottages.Add(ParseCottage(cottageNode));
+                        apiResults.Cottages.Add(ParseCottage(cottageNode));
                     }
                 }
 
@@ -61,15 +76,68 @@ internal class APIService
                     string totalValue = totalNode.Attributes["total"]?.Value;
                     if (int.TryParse(totalValue, out int total))
                     {
-                        results.Total = total;
+                        apiResults.Total = total;
                     }
                 }
-            }
 
+                // If we successfully got data from API, use it instead of local data
+                if (apiResults.Cottages.Count > 0)
+                {
+                    results = apiResults;
+                    Console.WriteLine($"Loaded {results.Cottages.Count} cottages from API");
+                }
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Error loading from API: {ex.Message}. Using local data.");
+        }
+
+        return results;
+    }
+
+    private async Task<SearchResults> LoadCottagesFromLocalXml()
+    {
+        var results = new SearchResults();
+
+        try
+        {
+            // Load the embedded XML file
+            using var stream = await FileSystem.OpenAppPackageFileAsync("CottageData.xml");
+            using var reader = new StreamReader(stream);
+            var xmlContent = await reader.ReadToEndAsync();
+
+            var xmlDoc = new System.Xml.XmlDocument();
+            xmlDoc.LoadXml(xmlContent);
+
+            var cottages = xmlDoc.SelectNodes("/results/cottages/cottage");
+            if (cottages != null)
+            {
+                foreach (System.Xml.XmlNode cottageNode in cottages)
+                {
+                    results.Cottages.Add(ParseCottage(cottageNode));
+                }
+            }
+
+            var totalNode = xmlDoc.SelectSingleNode("/results/total");
+            if (totalNode != null && totalNode.Attributes != null)
+            {
+                string totalValue = totalNode.Attributes["total"]?.Value;
+                if (int.TryParse(totalValue, out int total))
+                {
+                    results.Total = total;
+                }
+            }
+            else
+            {
+                // If no total node, set it to the count of cottages
+                results.Total = results.Cottages.Count;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading local XML file: {ex.Message}");
+            throw;
         }
 
         return results;

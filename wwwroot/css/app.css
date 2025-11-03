@@ -560,3 +560,55 @@ h1:focus {
         height: 300px;
     }
 }
+
+/* SENSOR READINGS PAGE STYLING */
+
+.sensor-readings-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sensor-readings-container h1 {
+    margin-bottom: 30px;
+    font-size: 2em;
+    color: #333;
+}
+
+.sensor-section-box {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sensor-section-box:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.sensor-section-box h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    color: #333;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.sensor-section-box .compass-container,
+.sensor-section-box .location-container,
+.sensor-section-box .bearing-container {
+    pointer-events: auto;
+}
+
+.sensor-section-box .btn,
+.sensor-section-box input,
+.sensor-section-box .form-group {
+    pointer-events: auto;
+}
