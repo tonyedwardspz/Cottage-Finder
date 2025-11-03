@@ -1,3 +1,16 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject CottageFinder.Services.BlazorNavigationService NavigationService
 
 @Body
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            NavigationService.SetNavigationManager(Navigation);
+        }
+        base.OnAfterRender(firstRender);
+    }
+}

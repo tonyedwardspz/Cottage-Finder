@@ -23,6 +23,7 @@ namespace CottageFinder
             builder.Services.AddSingleton<IBearingService, BearingService>();
             builder.Services.AddSingleton<APIService>();
             builder.Services.AddSingleton<CottageStateService>();
+            builder.Services.AddSingleton<Services.BlazorNavigationService>();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

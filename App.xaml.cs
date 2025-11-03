@@ -9,7 +9,7 @@
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new MainPage()) { Title = "CottageFinder" };
+            return new Window(new AppShell()) { Title = "CottageFinder" };
         }
     }
 }
