@@ -17,7 +17,7 @@
                       Color="Color.Primary"
                       OnClick="GoBack"
                       Size="Size.Medium" />
-        <MudText Typo="Typo.h5">Navigate to Cottage</MudText>
+        <MudText Typo="Typo.body1">Back to Cottage</MudText>
     </div>
 
     @if (isLoading)
@@ -51,13 +51,17 @@
     else
     {
         <div class="compass-content">
+            @* Page Title *@
+            <MudText Typo="Typo.h5" Class="mb-3">Navigate to Cottage</MudText>
+
             @* Cottage Info *@
             <MudCard Class="mb-4">
                 <MudCardContent>
                     <MudText Typo="Typo.h6" Class="mb-2">@cottage.Name</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" /> @cottage.Town
-                    </MudText>
+                    <div class="cottage-card-info-row">
+                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Color="Color.Secondary" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@cottage.Town</MudText>
+                    </div>
                 </MudCardContent>
             </MudCard>
 

@@ -1,0 +1,372 @@
+﻿@page "/sensor-readings"
+@using CottageFinder.Interfaces
+@using CottageFinder.Models
+@using Microsoft.Maui.Devices.Sensors
+@using Microsoft.AspNetCore.Components
+@inject ISensorsService SensorsService
+@inject IBearingService BearingService
+@inject ILocationService LocationService
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Sensor Readings</PageTitle>
+
+<div class="sensor-readings-container">
+    <h1>Sensor Readings</h1>
+
+    <!-- Compass Section -->
+    <div class="sensor-section-box" @onclick="NavigateToCompass">
+        <h2>Compass</h2>
+        <div class="compass-container">
+            @if (!SensorsService.IsCompassSupported)
+            {
+                <div class="alert alert-warning">
+                    <p>Compass is not supported on this device.</p>
+                </div>
+            }
+            else
+            {
+                <div class="compass-display">
+                    <div class="compass-reading" style="color: @compassColor">
+                        @compassReading
+                    </div>
+
+                    <button class="btn @(SensorsService.IsCompassMonitoring ? "btn-danger" : "btn-primary")" 
+                            @onclick="ToggleCompassAsync"
+                            @onclick:stopPropagation="true"
+                            disabled="@isCompassLoading">
+                        @if (isCompassLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            <span>Loading...</span>
+                        }
+                        else
+                        {
+                            @(SensorsService.IsCompassMonitoring ? "Stop Compass" : "Start Compass")
+                        }
+                    </button>
+                </div>
+
+                <div class="compass-status">
+                    <p>Status: <strong>@(SensorsService.IsCompassMonitoring ? "Monitoring" : "Stopped")</strong></p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Location Section -->
+    <div class="sensor-section-box" @onclick="NavigateToLocation">
+        <h2>Live Location Tracking</h2>
+        <div class="location-container">
+            <div class="status-section">
+                <h4>Status</h4>
+                <p class="status @(isLocationMonitoring ? "monitoring" : "stopped")">
+                    @(isLocationMonitoring ? "🟢 Monitoring" : "🔴 Stopped")
+                </p>
+                
+                <button class="btn @(isLocationMonitoring ? "btn-danger" : "btn-success")" 
+                        @onclick="ToggleLocationTracking"
+                        @onclick:stopPropagation="true">
+                    @(isLocationMonitoring ? "Stop Tracking" : "Start Tracking")
+                </button>
+                
+                <button class="btn btn-primary" 
+                        @onclick="GetCurrentLocation"
+                        @onclick:stopPropagation="true">
+                    Get Current Location
+                </button>
+            </div>
+
+            <div class="location-section">
+                <h4>Current Location</h4>
+                @if (currentLocation != null)
+                {
+                    <div class="location-details">
+                        <div class="coordinate">
+                            <strong>Latitude:</strong> @currentLocation.Latitude.ToString("F6")°
+                        </div>
+                        <div class="coordinate">
+                            <strong>Longitude:</strong> @currentLocation.Longitude.ToString("F6")°
+                        </div>
+                        <div class="coordinate">
+                            <strong>Altitude:</strong> 
+                            @(currentLocation.Altitude.HasValue ? $"{currentLocation.Altitude.Value:F2} m" : "N/A")
+                        </div>
+                        <div class="coordinate">
+                            <strong>Accuracy:</strong> 
+                            @(currentLocation.Accuracy.HasValue ? $"±{currentLocation.Accuracy.Value:F1} m" : "N/A")
+                        </div>
+                        <div class="coordinate">
+                            <strong>Speed:</strong> 
+                            @(currentLocation.Speed.HasValue ? $"{currentLocation.Speed.Value:F2} m/s" : "N/A")
+                        </div>
+                        <div class="coordinate">
+                            <strong>Course:</strong> 
+                            @(currentLocation.Course.HasValue ? $"{currentLocation.Course.Value:F1}°" : "N/A")
+                        </div>
+                        <div class="timestamp">
+                            <strong>Last Update:</strong> @lastUpdateTime.ToString("HH:mm:ss")
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="no-location">No location data available</p>
+                }
+            </div>
+
+            @if (locationHistory.Any())
+            {
+                <div class="history-section">
+                    <h4>Location History (Last 10 Updates)</h4>
+                    <div class="history-list">
+                        @foreach (var item in locationHistory.Take(10))
+                        {
+                            <div class="history-item">
+                                <span class="time">@item.Time.ToString("HH:mm:ss")</span>
+                                <span class="coords">
+                                    @item.Location.Latitude.ToString("F4")°, @item.Location.Longitude.ToString("F4")°
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Bearing Section -->
+    <div class="sensor-section-box" @onclick="NavigateToBearing">
+        <h2>Bearing Calculator</h2>
+        <div class="bearing-container">
+            <div class="input-section">
+                <h4>Target Coordinates</h4>
+                <div class="form-group">
+                    <label>Latitude:</label>
+                    <input type="number" step="any" @bind="targetLatitude" placeholder="e.g., 40.7128" @onclick:stopPropagation="true" />
+                </div>
+                <div class="form-group">
+                    <label>Longitude:</label>
+                    <input type="number" step="any" @bind="targetLongitude" placeholder="e.g., -74.0060" @onclick:stopPropagation="true" />
+                </div>
+                <button class="btn btn-primary" 
+                        @onclick="CalculateBearing"
+                        @onclick:stopPropagation="true">
+                    Calculate Bearing
+                </button>
+            </div>
+
+            @if (bearingResult != null)
+            {
+                <div class="result-section">
+                    <h4>Bearing Result</h4>
+                    <div class="result-details">
+                        <div class="result-item">
+                            <strong>Bearing:</strong> @bearingResult.BearingDegrees.ToString("F1")°
+                        </div>
+                        <div class="result-item">
+                            <strong>Direction:</strong> @bearingResult.CompassDirection
+                        </div>
+                        <div class="result-item">
+                            <strong>Distance:</strong> @bearingResult.DistanceKilometers.ToString("F2") km
+                        </div>
+                        <div class="result-item">
+                            <strong>From:</strong> @bearingResult.FromLocation.Latitude.ToString("F4")°, @bearingResult.FromLocation.Longitude.ToString("F4")°
+                        </div>
+                        <div class="result-item">
+                            <strong>To:</strong> @bearingResult.ToLocation.Latitude.ToString("F4")°, @bearingResult.ToLocation.Longitude.ToString("F4")°
+                        </div>
+                        <div class="result-item">
+                            <strong>Calculated:</strong> @bearingResult.CalculatedAt.ToString("HH:mm:ss")
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(bearingErrorMessage))
+            {
+                <div class="error-section">
+                    <p class="error">@bearingErrorMessage</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    // Compass variables
+    private string compassReading = "Compass: Not started";
+    private string compassColor = "black";
+    private bool isCompassLoading = false;
+
+    // Location variables
+    private Location? currentLocation;
+    private bool isLocationMonitoring = false;
+    private DateTime lastUpdateTime = DateTime.Now;
+    private List<(DateTime Time, Location Location)> locationHistory = new();
+
+    // Bearing variables
+    private double targetLatitude = 40.7128; // Example: New York City
+    private double targetLongitude = -74.0060;
+    private BearingResult? bearingResult;
+    private string bearingErrorMessage = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to compass service events
+        SensorsService.CompassReadingChanged += OnCompassReadingChanged;
+        SensorsService.CompassStatusChanged += OnCompassStatusChanged;
+
+        // Subscribe to location service events
+        LocationService.LocationChanged += OnLocationChanged;
+        LocationService.LocationStatusChanged += OnLocationStatusChanged;
+    }
+
+    #region Compass Methods
+    private async Task ToggleCompassAsync()
+    {
+        isCompassLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await SensorsService.ToggleCompassAsync();
+
+            if (!SensorsService.IsCompassMonitoring && !result)
+            {
+                // Handle case where compass failed to start
+                compassReading = "Compass: Failed to start";
+                compassColor = "red";
+            }
+        }
+        catch (Exception ex)
+        {
+            compassReading = $"Error: {ex.Message}";
+            compassColor = "red";
+        }
+        finally
+        {
+            isCompassLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnCompassReadingChanged(object? sender, CompassReadingEventArgs e)
+    {
+        // Update UI on main thread
+        InvokeAsync(() =>
+        {
+            compassReading = e.FormattedReading;
+            compassColor = "green";
+            StateHasChanged();
+        });
+    }
+
+    private void OnCompassStatusChanged(object? sender, bool isMonitoring)
+    {
+        // Update UI when compass status changes
+        InvokeAsync(() =>
+        {
+            if (!isMonitoring)
+            {
+                compassReading = "Compass: Stopped";
+                compassColor = "black";
+            }
+            StateHasChanged();
+        });
+    }
+    #endregion
+
+    #region Location Methods
+    private async Task ToggleLocationTracking()
+    {
+        var result = await LocationService.ToggleLocationUpdatesAsync();
+        StateHasChanged();
+    }
+
+    private async Task GetCurrentLocation()
+    {
+        var location = await LocationService.GetCurrentLocationAsync();
+        if (location != null)
+        {
+            currentLocation = location;
+            lastUpdateTime = DateTime.Now;
+            AddToHistory(location);
+            StateHasChanged();
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationEventArgs e)
+    {
+        currentLocation = e.Location;
+        lastUpdateTime = e.Timestamp;
+        AddToHistory(e.Location);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnLocationStatusChanged(object? sender, bool isActive)
+    {
+        isLocationMonitoring = isActive;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void AddToHistory(Location location)
+    {
+        locationHistory.Insert(0, (DateTime.Now, location));
+        if (locationHistory.Count > 50) // Keep only last 50 updates
+        {
+            locationHistory = locationHistory.Take(50).ToList();
+        }
+    }
+    #endregion
+
+    #region Bearing Methods
+    private async Task CalculateBearing()
+    {
+        bearingErrorMessage = string.Empty;
+        bearingResult = null;
+
+        try
+        {
+            bearingResult = await BearingService.CalculateBearingToTargetAsync(targetLatitude, targetLongitude);
+            
+            if (bearingResult == null)
+            {
+                bearingErrorMessage = "Could not get current location. Please ensure location permissions are granted.";
+            }
+        }
+        catch (Exception ex)
+        {
+            bearingErrorMessage = $"Error calculating bearing: {ex.Message}";
+        }
+    }
+    #endregion
+
+    #region Navigation Methods
+    private void NavigateToCompass()
+    {
+        Navigation.NavigateTo("/compass");
+    }
+
+    private void NavigateToLocation()
+    {
+        Navigation.NavigateTo("/location");
+    }
+
+    private void NavigateToBearing()
+    {
+        Navigation.NavigateTo("/bearing");
+    }
+    #endregion
+
+    public void Dispose()
+    {
+        // Unsubscribe from compass events to prevent memory leaks
+        SensorsService.CompassReadingChanged -= OnCompassReadingChanged;
+        SensorsService.CompassStatusChanged -= OnCompassStatusChanged;
+
+        // Unsubscribe from location events to prevent memory leaks
+        LocationService.LocationChanged -= OnLocationChanged;
+        LocationService.LocationStatusChanged -= OnLocationStatusChanged;
+    }
+}

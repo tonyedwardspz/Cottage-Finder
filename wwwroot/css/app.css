@@ -116,8 +116,8 @@ h1:focus {
 .compass-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
 .compass-content {
