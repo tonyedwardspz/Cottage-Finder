@@ -2,7 +2,16 @@
 @inject NavigationManager Navigation
 @inject CottageFinder.Services.BlazorNavigationService NavigationService
 
-@Body
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<div class="page-content">
+    @Body
+</div>
+
+<CottageFinder.Components.Shared.BottomNav />
 
 @code {
     protected override void OnAfterRender(bool firstRender)

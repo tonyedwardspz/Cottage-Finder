@@ -2,58 +2,41 @@
 @page "/cottages"
 @using CottageFinder.Services
 @using CottageFinder.Models
+@using CottageFinder.Components.CottageList
 @inject APIService ApiService
 @inject NavigationManager Navigation
 @inject CottageStateService StateService
 
-<h1>Cottages</h1>
+<div class="home-container">
+    <MudCard Class="welcome-card" Elevation="2">
+        <MudCardContent>
+            <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-2">Welcome to Cottage Finder</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">
+                Discover your perfect getaway from our curated collection of cottages
+            </MudText>
+        </MudCardContent>
+    </MudCard>
 
-@if (isLoading)
-{
-    <div class="loading">
-        <p>Loading cottages...</p>
-    </div>
-}
-else if (searchResults?.Cottages?.Any() == true)
-{
-    <div class="cottages-container">
-        @if (searchResults.Total.HasValue)
-        {
-            <p class="total-results">Found @searchResults.Total cottages</p>
-        }
-        
-        <div class="cottages-grid">
-            @foreach (var cottage in searchResults.Cottages)
-            {
-                <div class="cottage-card" @onclick="() => NavigateToCottageDetail(cottage.Code)">
-                    @if (!string.IsNullOrEmpty(cottage.PictureUrl))
-                    {
-                        <img src="@cottage.PictureUrl" alt="@cottage.Name" class="cottage-image" />
-                    }
-                    else
-                    {
-                        <div class="no-image">No Image Available</div>
-                    }
-                    <div class="cottage-info">
-                        <h3 class="cottage-title">@cottage.Name</h3>
-                        <p class="cottage-location">@cottage.Town</p>
-                        <p class="cottage-details">@cottage.SleepsText</p>
-                        @if (!string.IsNullOrEmpty(cottage.Rent))
-                        {
-                            <p class="cottage-price">@cottage.Rent</p>
-                        }
-                    </div>
-                </div>
-            }
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Class="mt-4">Loading cottages...</MudText>
         </div>
-    </div>
-}
-else
-{
-    <div class="no-results">
-        <p>No cottages found. Please try again later.</p>
-    </div>
-}
+    }
+    else if (searchResults?.Cottages?.Any() == true)
+    {
+        <CottageList Cottages="@searchResults.Cottages"
+                     TotalCount="@searchResults.Total"
+                     OnCottageSelected="NavigateToCottageDetail" />
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">
+            No cottages found. Please try again later.
+        </MudAlert>
+    }
+</div>
 
 @code {
     private SearchResults? searchResults;

@@ -1,6 +1,7 @@
 ﻿using CottageFinder.Interfaces;
 using CottageFinder.Services;
 using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
 
 namespace CottageFinder
 {
@@ -17,6 +18,7 @@ namespace CottageFinder
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddMudServices();
 
             builder.Services.AddSingleton<ISensorsService, SensorsService>();
             builder.Services.AddSingleton<ILocationService, LocationService>();

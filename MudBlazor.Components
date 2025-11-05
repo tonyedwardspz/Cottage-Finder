@@ -1,0 +1,172 @@
+
+
+Alert: <MudAlert>
+
+App Bar: <MudAppBar>
+
+Avatar: <MudAvatar>
+
+Badge: <MudBadge>
+
+Breadcrumbs: <MudBreadcrumbs> and <MudBreadcrumbItem>
+
+Breakpoint Provider: <MudBreakpointProvider>
+
+Card: <MudCard>
+
+Carousel: <MudCarousel> and <MudCarouselItem>
+
+Chat: <MudChat> (Note: This appears to be a custom or less common component.)
+
+Chip Set: <MudChipSet>
+
+Chips: <MudChip>
+
+Collapse: <MudCollapse>
+
+Container: <MudContainer>
+
+Data Grid: <MudDataGrid>
+
+Dialog: <MudDialog> and is often used with the IDialogService.[1][2]
+
+Divider: <MudDivider>
+
+Drawer: <MudDrawer>
+
+Drop Zone: <MudDropZone>
+
+Element: <MudElement>[3]
+
+Expansion Panels: <MudExpansionPanels> and <MudExpansionPanel>
+
+Focus Trap: <MudFocusTrap>
+
+Grid: <MudGrid> and <MudItem>
+
+Hidden: <MudHidden>
+
+Highlighter: <MudHighlighter>
+
+Icons: <MudIcon>
+
+Image: <MudImage>
+
+Link: <MudLink>
+
+List: <MudList> and <MudListItem>
+
+Menu: <MudMenu>
+
+Message Box: This is primarily used as a service: DialogService.ShowMessageBox(). There is also a <MudMessageBox> component for custom implementations.[4][5][6]
+
+Nav Menu: <MudNavMenu>, <MudNavLink>, and <MudNavGroup>
+
+Overlay: <MudOverlay>[7]
+
+Pagination: <MudPagination>[8]
+
+Paper: <MudPaper>
+
+Popover: <MudPopover>
+
+Progress: <MudProgressCircular> and <MudProgressLinear>[9]
+
+Rating: <MudRating> and <MudRatingItem>
+
+Scroll To Top: <MudScrollToTop>
+
+Simple Table: <MudSimpleTable>
+
+Skeleton: <MudSkeleton>
+
+Snackbar: Used as a service: ISnackbar.[10][11][12]
+
+Spacer: <MudSpacer>
+
+Stack: <MudStack>
+
+Stepper: <MudStepper> and <MudStep>
+
+Swipe Area: <MudSwipeArea>
+
+Table: <MudTable>
+
+Tabs: <MudTabs> and <MudTabPanel>
+
+Timeline: <MudTimeline> and <MudTimelineItem>
+
+Tool Bar: <MudToolBar>
+
+Tooltip: <MudTooltip>
+
+Tree View: <MudTreeView> and <MudTreeViewItem>
+
+Typography: <MudText>[13][14]
+
+Component Groups
+Buttons
+
+Button: <MudButton>[15]
+
+Button FAB: <MudFab>[16][17][18]
+
+Button Group: <MudButtonGroup>
+
+Icon Button: <MudIconButton>
+
+Toggle Icon Button: <MudToggleIconButton>
+
+Charts
+
+The primary component for all chart types is <MudChart>. The specific chart is determined by the ChartType parameter (e.g., ChartType.Bar, ChartType.Line).[19][20][21]
+
+Bar Chart
+
+Donut Chart
+
+Heat Map Chart
+
+Line Chart
+
+Pie Chart
+
+Stacked Bar Chart
+
+Time Series Chart
+
+Form & Inputs
+
+Autocomplete: <MudAutocomplete>
+
+Check Box: <MudCheckBox>
+
+Field: <MudField>
+
+File Upload: <MudFileUpload>
+
+Form: <MudForm>
+
+Numeric Field: <MudNumericField>
+
+Radio: <MudRadioGroup> and <MudRadio>
+
+Select: <MudSelect> and <MudSelectItem>
+
+Slider: <MudSlider>
+
+Switch: <MudSwitch>
+
+Text Field: <MudTextField>[22]
+
+Toggle Group: <MudToggleGroup> and <MudToggleItem>
+
+Pickers
+
+Color Picker: <MudColorPicker>
+
+Date Picker: <MudDatePicker>
+
+Date Range Picker: <MudDateRangePicker>
+
+Time Picker: <MudTimePicker>

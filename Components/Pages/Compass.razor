@@ -1,116 +1,288 @@
-@page "/compass"
+@page "/compass/{CottageCode:int}"
 @using CottageFinder.Interfaces
+@using CottageFinder.Models
+@using CottageFinder.Services
 @inject ISensorsService SensorsService
+@inject ILocationService LocationService
+@inject CottageStateService StateService
+@inject NavigationManager Navigation
 @implements IDisposable
 
-<PageTitle>Compass</PageTitle>
+<PageTitle>Navigate to Cottage</PageTitle>
 
-<div class="compass-container">
-    <h1>Compass</h1>
+<div class="compass-page-container">
+    @* Header *@
+    <div class="compass-header">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                      Color="Color.Primary"
+                      OnClick="GoBack"
+                      Size="Size.Medium" />
+        <MudText Typo="Typo.h5">Navigate to Cottage</MudText>
+    </div>
 
-    @if (!SensorsService.IsCompassSupported)
+    @if (isLoading)
     {
-        <div class="alert alert-warning">
-            <p>Compass is not supported on this device.</p>
+        <div class="loading-container">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Class="mt-4">Loading navigation...</MudText>
         </div>
+    }
+    else if (cottage == null)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mt-4">
+            <MudText Typo="Typo.h6">Cottage Not Found</MudText>
+            <MudText Typo="Typo.body2">Unable to load cottage information for navigation.</MudText>
+        </MudAlert>
+        <MudButton Variant="Variant.Filled"
+                  Color="Color.Primary"
+                  StartIcon="@Icons.Material.Filled.ArrowBack"
+                  OnClick="GoBack"
+                  Class="mt-4">
+            Back to Details
+        </MudButton>
+    }
+    else if (!SensorsService.IsCompassSupported || !LocationService.IsLocationSupported)
+    {
+        <MudAlert Severity="Severity.Error" Class="mt-4">
+            <MudText Typo="Typo.h6">Sensors Not Available</MudText>
+            <MudText Typo="Typo.body2">This device does not support the required sensors for navigation.</MudText>
+        </MudAlert>
     }
     else
     {
-        <div class="compass-display">
-            <div class="compass-reading" style="color: @compassColor">
-                @compassReading
-            </div>
+        <div class="compass-content">
+            @* Cottage Info *@
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Class="mb-2">@cottage.Name</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" /> @cottage.Town
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
 
-            <button class="btn @(SensorsService.IsCompassMonitoring ? "btn-danger" : "btn-primary")" 
-                    @onclick="ToggleCompassAsync"
-                    disabled="@isLoading">
-                @if (isLoading)
+            @* Compass Display *@
+            <div class="compass-visual-container">
+                @if (currentLocation != null && bearing.HasValue)
                 {
-                    <span class="spinner-border spinner-border-sm" role="status"></span>
-                    <span>Loading...</span>
+                    var relativeAngle = bearing.Value - deviceHeading;
+                    <div class="compass-circle">
+                        <div class="compass-arrow" style="transform: translateX(-50%) rotate(@(relativeAngle)deg)">
+                            <MudIcon Icon="@Icons.Material.Filled.Navigation" Color="Color.Primary" Size="Size.Large" />
+                        </div>
+                        <div class="compass-center-content">
+                            <div class="compass-bearing-display">
+                                <span class="compass-bearing-number">@bearing.Value.ToString("F0")</span>
+                                <span class="compass-bearing-symbol">°</span>
+                            </div>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="compass-direction-text">
+                                @GetCardinalDirection(bearing.Value)
+                            </MudText>
+                        </div>
+                    </div>
                 }
                 else
                 {
-                    @(SensorsService.IsCompassMonitoring ? "Stop Compass" : "Start Compass")
+                    <div class="compass-acquiring">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                        <MudText Typo="Typo.body1" Class="mt-2">Acquiring location...</MudText>
+                    </div>
                 }
-            </button>
-        </div>
+            </div>
 
-        <div class="compass-status">
-            <p>Status: <strong>@(SensorsService.IsCompassMonitoring ? "Monitoring" : "Stopped")</strong></p>
+            @* Navigation Info *@
+            @if (currentLocation != null && distance.HasValue)
+            {
+                <MudCard Class="mt-4">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-3">Navigation Info</MudText>
+                        <div class="navigation-info-grid">
+                            <div class="nav-info-item">
+                                <MudIcon Icon="@Icons.Material.Filled.Straighten" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Distance</MudText>
+                                    <MudText Typo="Typo.body1"><strong>@distance.Value.ToString("F2") km</strong></MudText>
+                                </div>
+                            </div>
+                            <div class="nav-info-item">
+                                <MudIcon Icon="@Icons.Material.Filled.Explore" Color="Color.Primary" />
+                                <div>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Direction</MudText>
+                                    <MudText Typo="Typo.body1"><strong>@GetCardinalDirection(bearing!.Value)</strong></MudText>
+                                </div>
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+
+                @* Current Location *@
+                <MudCard Class="mt-4">
+                    <MudCardContent>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Your Location</MudText>
+                        <MudText Typo="Typo.body2">
+                            @currentLocation.Latitude.ToString("F6"), @currentLocation.Longitude.ToString("F6")
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">Destination</MudText>
+                        <MudText Typo="Typo.body2">
+                            @cottage.Latitude.ToString("F6"), @cottage.Longitude.ToString("F6")
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            }
         </div>
     }
 </div>
 
 @code {
-    private string compassReading = "Compass: Not started";
-    private string compassColor = "black";
-    private bool isLoading = false;
+    [Parameter]
+    public int CottageCode { get; set; }
 
-    protected override void OnInitialized()
+    private Cottage? cottage;
+    private bool isLoading = true;
+    private Location? currentLocation;
+    private double? bearing;
+    private double? distance;
+    private double deviceHeading = 0;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Subscribe to service events
-        SensorsService.CompassReadingChanged += OnCompassReadingChanged;
-        SensorsService.CompassStatusChanged += OnCompassStatusChanged;
-    }
-
-    private async Task ToggleCompassAsync()
-    {
-        isLoading = true;
-        StateHasChanged();
-
         try
         {
-            var result = await SensorsService.ToggleCompassAsync();
+            // Load cottage details
+            cottage = StateService.GetCottageByCode(CottageCode);
 
-            if (!SensorsService.IsCompassMonitoring && !result)
+            if (cottage == null)
             {
-                // Handle case where compass failed to start
-                compassReading = "Compass: Failed to start";
-                compassColor = "red";
+                Console.WriteLine($"Cottage {CottageCode} not found in state");
+                isLoading = false;
+                return;
+            }
+
+            // Subscribe to location updates
+            LocationService.LocationChanged += OnLocationChanged;
+
+            // Subscribe to compass updates
+            SensorsService.CompassReadingChanged += OnCompassReadingChanged;
+
+            // Start location tracking
+            if (LocationService.IsLocationSupported)
+            {
+                await LocationService.StartLocationUpdatesAsync();
+            }
+
+            // Start compass tracking
+            if (SensorsService.IsCompassSupported)
+            {
+                await SensorsService.ToggleCompassAsync();
             }
         }
         catch (Exception ex)
         {
-            compassReading = $"Error: {ex.Message}";
-            compassColor = "red";
+            Console.WriteLine($"Error initializing compass: {ex.Message}");
         }
         finally
         {
             isLoading = false;
-            StateHasChanged();
         }
+    }
+
+    private void OnLocationChanged(object? sender, LocationEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            currentLocation = e.Location;
+
+            if (cottage != null && currentLocation != null)
+            {
+                // Calculate bearing and distance
+                bearing = CalculateBearing(
+                    currentLocation.Latitude,
+                    currentLocation.Longitude,
+                    cottage.Latitude,
+                    cottage.Longitude
+                );
+
+                distance = CalculateDistance(
+                    currentLocation.Latitude,
+                    currentLocation.Longitude,
+                    cottage.Latitude,
+                    cottage.Longitude
+                );
+            }
+
+            StateHasChanged();
+        });
     }
 
     private void OnCompassReadingChanged(object? sender, CompassReadingEventArgs e)
     {
-        // Update UI on main thread
         InvokeAsync(() =>
         {
-            compassReading = e.FormattedReading;
-            compassColor = "green";
+            deviceHeading = e.HeadingMagneticNorth;
             StateHasChanged();
         });
     }
 
-    private void OnCompassStatusChanged(object? sender, bool isMonitoring)
+    private double CalculateBearing(double lat1, double lon1, double lat2, double lon2)
     {
-        // Update UI when compass status changes
-        InvokeAsync(() =>
-        {
-            if (!isMonitoring)
-            {
-                compassReading = "Compass: Stopped";
-                compassColor = "black";
-            }
-            StateHasChanged();
-        });
+        // Convert to radians
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        lat1 = lat1 * Math.PI / 180;
+        lat2 = lat2 * Math.PI / 180;
+        lon1 = lon1 * Math.PI / 180;
+        lon2 = lon2 * Math.PI / 180;
+
+        var y = Math.Sin(dLon) * Math.Cos(lat2);
+        var x = Math.Cos(lat1) * Math.Sin(lat2) - Math.Sin(lat1) * Math.Cos(lat2) * Math.Cos(dLon);
+        var bearing = Math.Atan2(y, x);
+
+        // Convert to degrees
+        bearing = bearing * 180 / Math.PI;
+        bearing = (bearing + 360) % 360;
+
+        return bearing;
     }
 
-    public void Dispose()
+    private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
-        // Unsubscribe from events to prevent memory leaks
+        // Haversine formula
+        const double R = 6371; // Earth's radius in km
+
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+
+        lat1 = lat1 * Math.PI / 180;
+        lat2 = lat2 * Math.PI / 180;
+
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+        return R * c;
+    }
+
+    private string GetCardinalDirection(double bearing)
+    {
+        var directions = new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+        var index = (int)Math.Round(bearing / 45) % 8;
+        return directions[index];
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo($"/cottage/{CottageCode}");
+    }
+
+    public async void Dispose()
+    {
+        LocationService.LocationChanged -= OnLocationChanged;
         SensorsService.CompassReadingChanged -= OnCompassReadingChanged;
-        SensorsService.CompassStatusChanged -= OnCompassStatusChanged;
+
+        await LocationService.StopLocationUpdatesAsync();
+
+        if (SensorsService.IsCompassMonitoring)
+        {
+            await SensorsService.ToggleCompassAsync();
+        }
     }
 }

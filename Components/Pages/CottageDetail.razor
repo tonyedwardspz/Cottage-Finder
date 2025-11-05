@@ -8,17 +8,22 @@
 <div class="cottage-detail-container">
     @if (isLoading)
     {
-        <div class="loading">
-            <p>Loading cottage details...</p>
+        <div class="loading-container">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Class="mt-4">Loading cottage details...</MudText>
         </div>
     }
     else if (cottage != null)
     {
         <div class="cottage-detail-header">
-            <button class="back-button" @onclick="GoBack">
-                <span class="back-arrow">←</span> Back to Cottages
-            </button>
-            <h1 class="cottage-detail-title">@cottage.Name</h1>
+            <div class="cottage-detail-header-top">
+                <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                              Color="Color.Primary"
+                              OnClick="GoBack"
+                              Size="Size.Medium" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Back to Cottages</MudText>
+            </div>
+            <MudText Typo="Typo.h5" Class="cottage-detail-title mt-2">@cottage.Name</MudText>
         </div>
 
         <div class="cottage-detail-content">
@@ -34,9 +39,21 @@
             </div>
 
             <div class="cottage-detail-info">
-                <div class="cottage-detail-card">
-                    <h2>Quick Details</h2>
-                    <div class="detail-grid">
+                @* Navigate to Cottage Button *@
+                <MudButton Variant="Variant.Filled"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Explore"
+                          Size="Size.Large"
+                          FullWidth="true"
+                          Class="mb-4"
+                          OnClick="NavigateToCottage">
+                    Navigate to Cottage
+                </MudButton>
+
+                <MudCard Class="mb-4">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-3">Quick Details</MudText>
+                        <div class="detail-grid">
                         <div class="detail-item">
                             <strong>Location:</strong>
                             <span>@cottage.Town</span>
@@ -85,12 +102,14 @@
                             </div>
                         }
                     </div>
-                </div>
+                    </MudCardContent>
+                </MudCard>
 
                 @if (!string.IsNullOrEmpty(cottage.Rent))
                 {
-                    <div class="cottage-detail-card pricing-card">
-                        <h2>Pricing</h2>
+                    <MudCard Class="mb-4 pricing-card-mud">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">Pricing</MudText>
                         <div class="price-display">
                             <span class="main-price">@cottage.Rent</span>
                             @if (cottage.MinRent != cottage.MaxRent && cottage.MinRent > 0 && cottage.MaxRent > 0)
@@ -100,23 +119,27 @@
                                 </div>
                             }
                         </div>
-                    </div>
+                        </MudCardContent>
+                    </MudCard>
                 }
 
                 @if (!string.IsNullOrEmpty(cottage.IntroText))
                 {
-                    <div class="cottage-detail-card description-card">
-                        <h2>Description</h2>
-                        <div class="description-text">
-                            @((MarkupString)FormatIntroText(cottage.IntroText))
-                        </div>
-                    </div>
+                    <MudCard Class="mb-4">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">Description</MudText>
+                            <div class="description-text">
+                                @((MarkupString)FormatIntroText(cottage.IntroText))
+                            </div>
+                        </MudCardContent>
+                    </MudCard>
                 }
 
                 @if (cottage.SpecialOffers?.Any() == true)
                 {
-                    <div class="cottage-detail-card offers-card">
-                        <h2>Special Offers</h2>
+                    <MudCard Class="mb-4 offers-card-mud">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-3">Special Offers</MudText>
                         <div class="offers-list">
                             @foreach (var offer in cottage.SpecialOffers)
                             {
@@ -132,8 +155,8 @@
                                     @if (!string.IsNullOrEmpty(offer.PriceFull) && !string.IsNullOrEmpty(offer.PriceNow))
                                     {
                                         <div class="offer-pricing">
-                                            <span class="price-was">Was: @offer.PriceFull</span>
-                                            <span class="price-now">Now: @offer.PriceNow</span>
+                                            <span class="price-was">@offer.PriceFull</span>
+                                            <span class="price-now">@offer.PriceNow</span>
                                         </div>
                                     }
                                     else if (!string.IsNullOrEmpty(offer.PriceNow))
@@ -143,30 +166,42 @@
                                 </div>
                             }
                         </div>
-                    </div>
+                        </MudCardContent>
+                    </MudCard>
                 }
 
-                <div class="cottage-detail-card location-card">
-                    <h2>Location Details</h2>
-                    <div class="location-info">
-                        <p><strong>Coordinates:</strong> @cottage.Latitude.ToString("F6"), @cottage.Longitude.ToString("F6")</p>
-                        @if (cottage.Position.HasValue)
-                        {
-                            <p><strong>Search Position:</strong> #@cottage.Position</p>
-                        }
-                    </div>
-                </div>
+                <MudCard Class="mb-4">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="mb-3">Location Details</MudText>
+                        <div class="location-info">
+                            <MudText Typo="Typo.body2" Class="mb-2">
+                                <strong>Coordinates:</strong> @cottage.Latitude.ToString("F6"), @cottage.Longitude.ToString("F6")
+                            </MudText>
+                            @if (cottage.Position.HasValue)
+                            {
+                                <MudText Typo="Typo.body2">
+                                    <strong>Search Position:</strong> #@cottage.Position
+                                </MudText>
+                            }
+                        </div>
+                    </MudCardContent>
+                </MudCard>
             </div>
         </div>
     }
     else
     {
         <div class="cottage-not-found">
-            <h2>Cottage Not Found</h2>
-            <p>The cottage you're looking for could not be found.</p>
-            <button class="back-button" @onclick="GoBack">
-                <span class="back-arrow">←</span> Back to Cottages
-            </button>
+            <MudAlert Severity="Severity.Warning" Class="mb-4">
+                <MudText Typo="Typo.h6">Cottage Not Found</MudText>
+                <MudText Typo="Typo.body2">The cottage you're looking for could not be found.</MudText>
+            </MudAlert>
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      StartIcon="@Icons.Material.Filled.ArrowBack"
+                      OnClick="GoBack">
+                Back to Cottages
+            </MudButton>
         </div>
     }
 </div>
@@ -221,6 +256,14 @@
     private void GoBack()
     {
         Navigation.NavigateTo("/cottages");
+    }
+
+    private void NavigateToCottage()
+    {
+        if (cottage != null)
+        {
+            Navigation.NavigateTo($"/compass/{cottage.Code}");
+        }
     }
 
     private string FormatIntroText(string introText)

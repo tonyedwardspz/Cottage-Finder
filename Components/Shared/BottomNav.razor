@@ -1,0 +1,63 @@
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="bottom-nav-container">
+    <MudPaper Class="bottom-nav" Elevation="0">
+        <MudGrid Spacing="0" Justify="Justify.SpaceEvenly" Class="mud-width-full">
+            <MudItem xs="6" Class="d-flex justify-center">
+                <MudButton Href="/"
+                          Color="@(IsActive("/") ? Color.Primary : Color.Default)"
+                          Variant="Variant.Text"
+                          Class="bottom-nav-button">
+                    <div class="bottom-nav-content">
+                        <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Medium" />
+                        <span>Home</span>
+                    </div>
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6" Class="d-flex justify-center">
+                <MudButton Href="/location"
+                          Color="@(IsActive("/location") ? Color.Primary : Color.Default)"
+                          Variant="Variant.Text"
+                          Class="bottom-nav-button">
+                    <div class="bottom-nav-content">
+                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Medium" />
+                        <span>My Location</span>
+                    </div>
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Subscribe to navigation changes to update the highlight
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        // Force the component to re-render when navigation occurs
+        StateHasChanged();
+    }
+
+    private bool IsActive(string path)
+    {
+        var currentPath = new Uri(NavigationManager.Uri).AbsolutePath;
+
+        if (path == "/")
+        {
+            return currentPath == "/" || currentPath == "/cottages";
+        }
+
+        return currentPath.StartsWith(path);
+    }
+
+    public void Dispose()
+    {
+        // Clean up event subscription
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

@@ -1,0 +1,40 @@
+@using CottageFinder.Models
+
+<div class="cottage-list-container">
+    @if (TotalCount.HasValue)
+    {
+        <div class="cottage-list-header">
+            <MudPaper Class="cottage-count-badge" Elevation="1">
+                <MudIcon Icon="@Icons.Material.Filled.Cottage" Color="Color.Primary" Size="Size.Medium" Class="mr-2" />
+                <MudText Typo="Typo.body1" Color="Color.Primary">
+                    <strong>@TotalCount cottages available</strong>
+                </MudText>
+            </MudPaper>
+        </div>
+    }
+
+    <MudGrid Spacing="3" Justify="Justify.FlexStart">
+        @foreach (var cottage in Cottages)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <CottageCard Cottage="@cottage" OnCottageSelected="HandleCottageSelected" />
+            </MudItem>
+        }
+    </MudGrid>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public List<Cottage> Cottages { get; set; } = new();
+
+    [Parameter]
+    public int? TotalCount { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnCottageSelected { get; set; }
+
+    private async Task HandleCottageSelected(int cottageCode)
+    {
+        await OnCottageSelected.InvokeAsync(cottageCode);
+    }
+}
